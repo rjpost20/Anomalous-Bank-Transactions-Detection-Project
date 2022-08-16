@@ -1,5 +1,5 @@
 def spark_resample(df, ratio, new_count, class_field, 
-                        pos_class, shuffle, random_state):
+                   pos_class, shuffle, random_state):
     """
     Resample PySpark dataframe with an imbalanced binary 
     target class distribution through a combination of 
