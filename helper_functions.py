@@ -1,8 +1,5 @@
-import numpy as np
-import pyspark.sql.functions as F
-
-def spark_resample(df, undersample_fraction, oversample_fraction, \
-                   class_field, pos_class, shuffle, random_state):
+def spark_resample(df, ratio, new_count, class_field, 
+                        pos_class, shuffle, random_state):
     """
     Resample PySpark dataframe with an imbalanced binary 
     target class distribution through a combination of 
@@ -13,10 +10,12 @@ def spark_resample(df, undersample_fraction, oversample_fraction, \
     ----------
     df : Spark `DataFrame`
         The Spark `DataFrame` to resample
-    undersample_fraction : `float`
-        Fraction to undersample majority class
-    oversample_fraction : `float`
-        Fraction to oversample minority class
+    ratio : `float`
+        Desired ratio of positive (oversampled) class to 
+        negative (undersampled) class in new `DataFrame`
+    new_count : `int`
+        Desired total count of observations (rows) in new
+        `DataFrame`
     class_field : Spark `Column`
         Name of `Column` in `DataFrame` to resample
     pos_class : `DataType` of `class_field`
@@ -35,14 +34,17 @@ def spark_resample(df, undersample_fraction, oversample_fraction, \
     total_pos = pos.count()
     total_neg = neg.count()
 
-    neg_undersampled = neg.sample(withReplacement=False, 
-                                  fraction=undersample_fraction, 
-                                  seed=random_state)
+    oversample_fraction = (ratio * new_count) / total_pos
+    undersample_fraction = ((1 - ratio) * new_count) / total_neg
 
     pos_oversampled = pos.sample(withReplacement=True, 
                                  fraction=oversample_fraction, 
                                  seed=random_state)
     
+    neg_undersampled = neg.sample(withReplacement=False, 
+                                  fraction=undersample_fraction, 
+                                  seed=random_state)
+
     resampled_df = neg_undersampled.union(pos_oversampled)
 
     if shuffle == True:
