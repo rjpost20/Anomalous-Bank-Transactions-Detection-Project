@@ -1,3 +1,5 @@
+import pyspark.sql.functions as F
+
 def spark_resample(df, ratio, new_count, class_field, 
                    pos_class, shuffle, random_state):
     """
