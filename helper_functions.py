@@ -1,9 +1,37 @@
 import pyspark.sql.functions as F
+from pyspark.sql.types import DoubleType
+
+
+def create_weight_col(df, label_col):
+    """
+    Calculates and creates a column of class 
+    weights in a PySpark dataframe with an imbalanced 
+    binary target class distribution. Assigned 
+    class weights are equal to 1 - proportion 
+    of class in dataframe.
+
+    Parameters
+    ----------
+    df : Spark `DataFrame`
+        The Spark `DataFrame` to assign the 
+        `ClassWeight` column to
+    label_col : Spark `Column`
+        Label column name
+    """
+    balancing_ratio = df.filter(F.col(label_col) == 1).count() / df.count()
+
+    calculate_weights = F.udf(lambda x: 1 * balancing_ratio if x == 0
+                              else (1 * (1.0 - balancing_ratio)), DoubleType())
+
+    df = df.withColumn('ClassWeight', calculate_weights(label_col))
+
+    return df
+
 
 def spark_resample(df, ratio, new_count, class_field, 
                    pos_class, shuffle, random_state):
     """
-    Resample PySpark dataframe with an imbalanced binary 
+    Resamples PySpark dataframe with an imbalanced binary 
     target class distribution through a combination of 
     undersampling the majority (negative) class and 
     oversampling the minority (positive) class.
