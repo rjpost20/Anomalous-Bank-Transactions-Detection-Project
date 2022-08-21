@@ -2,13 +2,11 @@ import pyspark.sql.functions as F
 from pyspark.sql.types import DoubleType
 
 
-def create_weight_col(df, label_col):
+def set_weight_col(df, label_col, neg_class_weight):
     """
-    Calculates and creates a column of class 
-    weights in a PySpark dataframe with an imbalanced 
-    binary target class distribution. Assigned 
-    class weights are equal to 1 - proportion 
-    of class in dataframe.
+    Calculates and creates a column of class weights 
+    in a PySpark dataframe with an imbalanced binary 
+    target class distribution.
 
     Parameters
     ----------
@@ -17,13 +15,23 @@ def create_weight_col(df, label_col):
         `ClassWeight` column to
     label_col : Spark `Column`
         Label column name
+    neg_class_weight : '`float` or 'balanced'
+        New class weight to assign to negative class 
+        (`0`) in weight column. If 'balanced', assigned 
+        class weights will be equal to 1 - proportion of 
+        class in dataframe. If `float`, negative class 
+        will be assigned `neg_class_weight` and positive 
+        class weights remain at 1.0.
     """
-    balancing_ratio = df.filter(F.col(label_col) == 1).count() / df.count()
+    if neg_class_weight == 'balanced':
+        balancing_ratio = df.filter(F.col(label_col) == 1).count() / df.count()
+        calculate_weights = F.udf(lambda x: balancing_ratio if x == 0 
+                                  else 1.0 - balancing_ratio, DoubleType())
+    else:
+        calculate_weights = F.udf(lambda x: neg_class_weight if x == 0 
+                                  else 1.0, DoubleType())
 
-    calculate_weights = F.udf(lambda x: 1 * balancing_ratio if x == 0
-                              else (1 * (1.0 - balancing_ratio)), DoubleType())
-
-    df = df.withColumn('ClassWeight', calculate_weights(label_col))
+    df = df.withColumn('Weight', calculate_weights(label_col))
 
     return df
 
