@@ -4,12 +4,11 @@ from pyspark.sql.types import DoubleType
 from pyspark.ml import Pipeline
 from pyspark.ml.evaluation import BinaryClassificationEvaluator
 from pyspark.ml.tuning import TrainValidationSplit
-from sklearn.metrics import classification_report, confusion_matrix, \
-     ConfusionMatrixDisplay
+from sklearn.metrics import classification_report, confusion_matrix, ConfusionMatrixDisplay
 import matplotlib.pyplot as plt
 
 
-def set_weight_col(df, label_col, neg_class_weight):
+def set_weight_col(df, label_col, pos_class_weight, neg_class_weight):
     """
     Calculates and creates a column of class weights 
     in a PySpark dataframe with an imbalanced binary 
@@ -22,21 +21,26 @@ def set_weight_col(df, label_col, neg_class_weight):
         `ClassWeight` column to
     label_col : Spark `Column`
         Label column name
+    pos_class_weight : `float` or 'balanced'
+        Class weight to assign to positive class 
+        (`1`) in weight column. If 'balanced', assigned 
+        class weights will be equal to 1 - proportion of 
+        class in dataframe. If `float`, positive class 
+        will be assigned `pos_class_weight`.
     neg_class_weight : '`float` or 'balanced'
-        New class weight to assign to negative class 
+        Class weight to assign to negative class 
         (`0`) in weight column. If 'balanced', assigned 
         class weights will be equal to 1 - proportion of 
         class in dataframe. If `float`, negative class 
-        will be assigned `neg_class_weight` and positive 
-        class weights remain at 1.0.
+        will be assigned `neg_class_weight`.
     """
-    if neg_class_weight == 'balanced':
+    if pos_class_weight == 'balanced' or neg_class_weight == 'balanced':
         balancing_ratio = df.filter(F.col(label_col) == 1).count() / df.count()
         calculate_weights = F.udf(lambda x: balancing_ratio if x == 0 
                                   else 1.0 - balancing_ratio, DoubleType())
     else:
-        calculate_weights = F.udf(lambda x: neg_class_weight if x == 0 
-                                  else 1.0, DoubleType())
+        calculate_weights = F.udf(lambda x: pos_class_weight if x == 1 
+                                  else neg_class_weight, DoubleType())
 
     df = df.withColumn('Weight', calculate_weights(label_col))
 
@@ -44,8 +48,10 @@ def set_weight_col(df, label_col, neg_class_weight):
 
 
 
-def spark_resample(df, ratio, new_count, class_field, 
-                   pos_class, shuffle, random_state):
+def spark_resample(df, class_field, pos_class, shuffle, random_state,
+                   ratio=None, new_count=None,
+                   oversample_fraction=None,
+                   undersample_fraction=None):
     """
     Resamples PySpark dataframe with an imbalanced binary 
     target class distribution through a combination of 
@@ -62,6 +68,10 @@ def spark_resample(df, ratio, new_count, class_field,
     new_count : `int`
         Desired total count of observations (rows) in new
         `DataFrame`
+    oversample_fraction : `float`
+        Fraction to oversample minority class
+    undersample_fraction : `float`
+        Fraction to undersample majority class
     class_field : Spark `Column`
         Name of `Column` in `DataFrame` to resample
     pos_class : `DataType` of `class_field`
@@ -79,9 +89,13 @@ def spark_resample(df, ratio, new_count, class_field,
 
     total_pos = pos.count()
     total_neg = neg.count()
-
-    oversample_fraction = (ratio * new_count) / total_pos
-    undersample_fraction = ((1 - ratio) * new_count) / total_neg
+    
+    if ratio != None and new_count != None:
+        oversample_fraction = (ratio * new_count) / total_pos
+        undersample_fraction = ((1 - ratio) * new_count) / total_neg
+    elif oversample_fraction != None and undersample_fraction != None:
+        oversample_fraction=oversample_fraction
+        undersample_fraction=undersample_fraction
 
     pos_oversampled = pos.sample(withReplacement=True, 
                                  fraction=oversample_fraction, 
