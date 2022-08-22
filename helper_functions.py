@@ -4,8 +4,8 @@ from pyspark.sql.types import DoubleType
 from pyspark.ml import Pipeline
 from pyspark.ml.evaluation import BinaryClassificationEvaluator
 from pyspark.ml.tuning import TrainValidationSplit
-from sklearn.metrics import classification_report, confusion_matrix,
-ConfusionMatrixDisplay
+from sklearn.metrics import classification_report, confusion_matrix, \
+     ConfusionMatrixDisplay
 import matplotlib.pyplot as plt
 
 
