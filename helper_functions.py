@@ -91,21 +91,26 @@ def spark_resample(df, class_field, pos_class, shuffle, random_state,
     total_neg = neg.count()
     
     if ratio != None and new_count != None:
-        oversample_fraction = (ratio * new_count) / total_pos
-        undersample_fraction = ((1 - ratio) * new_count) / total_neg
+        overSampleFraction = (ratio * new_count) / total_pos
+        underSampleFraction = ((1 - ratio) * new_count) / total_neg
     elif oversample_fraction != None and undersample_fraction != None:
-        oversample_fraction=oversample_fraction
-        undersample_fraction=undersample_fraction
+        overSampleFraction=oversample_fraction
+        underSampleFraction=undersample_fraction
 
     pos_oversampled = pos.sample(withReplacement=True, 
-                                 fraction=oversample_fraction, 
+                                 fraction=overSampleFraction, 
                                  seed=random_state)
     
     neg_undersampled = neg.sample(withReplacement=False, 
-                                  fraction=undersample_fraction, 
+                                  fraction=underSampleFraction, 
                                   seed=random_state)
 
-    resampled_df = neg_undersampled.union(pos_oversampled)
+    if oversample_fraction != 1.0 and undersample_fraction != 1.0:
+        resampled_df = neg_undersampled.union(pos_oversampled)
+    elif oversample_fraction == 1.0 and undersample_fraction != 1.0:
+        resampled_df = neg_undersampled.union(pos)
+    elif oversample_fraction != 1.0 and undersample_fraction == 1.0:
+        resampled_df = neg.union(pos_oversampled)
 
     if shuffle == True:
         resampled_df = resampled_df.withColumn('rand', 
