@@ -7,7 +7,7 @@ Image by <a href="https://stock.adobe.com/contributor/200768506/andsus?load_type
 
 ### Links
 
-Presentation slidedeck PDF:
+Presentation slidedeck PDF
 
 
 *This is an assignment for learning purposes. FinCEN is not involved with this project in any way.*
