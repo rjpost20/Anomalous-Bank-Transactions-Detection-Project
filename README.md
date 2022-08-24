@@ -25,3 +25,15 @@ One promising tool in the fight against money laundering is the use of machine l
 
 The goal and motivation of this project is to provide the <a href="https://www.fincen.gov/" > Financial Crimes Enforcement Network</a>, aka FinCEN (*project is for academic purposes - FinCEN not actually involved*) with a machine learning model that can process routine financial transaction data and classify whether the transaction is anomalous or not. Such a model can be used not only by FinCEN and other regulatory agencies, but also by industry participants (i.e. financial institutions) to proactively detect and deter illicit activity being conducted through their systems.
 
+<br>
+
+## Data Sources
+
+Data for this project was obtained from <a href="https://www.drivendata.org/" >drivendata.org </a> as part of their PETs prize challenge: financial crime track. PETs, or privacy-enhancing technologies, involves finding new and innovative ways to harness the power of data while adhering to proper respect and safeguards for privacy, security and confidentiality of the data and its sources.
+
+The data itself was produced through a collaboration between the National Institute of Standards and Technology (NIST) and the National Science Foundation (NSF). Due to the security and confidentiality concerns of such a sensitive matter, the dataset is synthetic, though it is intended to represent global payments data in broad strokes. The transactions dataset contains a binary discrete numerical `Label` column, the target variable for the project, with a `0` representing a non-anomalous transaction and a `1` representing an anomalous transaction.
+
+![Slide 4](https://user-images.githubusercontent.com/105675055/186504784-3f2885ec-aa9b-44a8-ad3a-a9331fe63986.jpeg)
+
+
+
