@@ -3,6 +3,9 @@
 <img src="https://github.com/rjpost20/Anomalous-Bank-Transactions-Detection-Project/blob/main/data/AdobeStock_319163865.jpeg?raw=true">
 Image by <a href="https://stock.adobe.com/contributor/200768506/andsus?load_type=author&prev_url=detail" >AndSus</a> on Adobe Stock
 
+<br>
+<br>
+
 ## By Ryan Posternak
 
 ### Links
@@ -20,6 +23,8 @@ Money laundering is a <a href="https://www.fincen.gov/what-money-laundering" > m
 
 ![image](https://user-images.githubusercontent.com/105675055/186501449-7392de52-dd31-4bcf-81ce-8f85b71e5bcc.png)
 Image by <a href="https://www.unodc.org/unodc/en/money-laundering/overview.html" >UN Office on Drugs and Crime </a>
+
+<br>
 
 One promising tool in the fight against money laundering is the use of machine learning models to detect anomalous financial transactions. When such models flag a transaction, further investigation can be conducted to determine if the activity indeed represents illegal criminal activity or not. The accuracy of such models, however, is paramount, as the limited resources of banks and regulatory agencies could not possibly hope to investigate more than a handful of the <a href="https://www.federalreserve.gov/paymentsystems/fedach_yearlycomm.htm" > tens of millions</a> of transactions that occur daily.
 
@@ -45,6 +50,8 @@ As part of the exploratory data analysis phase, differences in feature prevalenc
 
 ![sender_banks_barplot](https://user-images.githubusercontent.com/105675055/186523034-ab994c1e-3f0b-470d-bdcb-5420d262d7a9.png)
 
+<br>
+
 The following features were engineered in order to maximize the signal captured in the two datasets:
 
 - **`OrderingCountry` and `BeneficiaryCountry`**: These features were created by extracting the two-letter country code from the `OrderingCountryCityZip` and `BeneficiaryCountryCityZip` columns of the transactions dataframe. These two features were used for the `OrderingCountryFreq` and `BeneficiaryCountryFreq` numerical features below, as well as categorical features themselves in the full dataset via one hot encoding.
@@ -53,17 +60,23 @@ The following features were engineered in order to maximize the signal captured 
 
 ![instructed_amount_usd_hist](https://user-images.githubusercontent.com/105675055/186510886-291ce82d-dbf2-4a04-97f5-35ec6e5ffeff.png)
 
+<br>
+
 - **`IntermediaryTransactions`**: While each row/observation in the dataset represented a unique individual transaction, some individual transactions represented one part of a end-to-end transaction, which could be identified by their UETR codes. This feature was created by grouping and counting UETR code occurrences, and subtracting 1 to obtain the number of intermediary transactions for each end-to-end transaction.
 
 - **`OriginalSender` and `FinalReceiver`**: The `Sender` and `Receiver` bank features in the original dataset represented the sender and receiver banks of the individual transactions, but for end-to-end transactions where intermediary banks were used, the `Sender` and `Receiver` bank may not have represented the original sender bank and final receiver bank in the end-to-end transaction (which was the correct way to associate them according to the data providers). This feature was created to address this discrepancy.
 
 ![sender_bank_type_barplot](https://user-images.githubusercontent.com/105675055/186516557-482cf398-ae3d-41f7-a1c8-12bd21b40040.png)
 
+<br>
+
 - **`Flagged`**: The main feature of value in the bank accounts dataframe was the `Flags` feature, which contained one of 11 unique potential flags associated with each account in the transactions dataframe (save for a very small subset of accounts with no associated flag). The vast majority of accounts had a flag of `0`, which signified "No flags", while the other flags may have represented an account being closed, a name mismatch, or an account under monitoring, to name a few. This feature of the bank accounts dataframe was joined with the main transactions dataset using a SQL join operation in PySpark. Additionally, as EDA revealed that any account with a flag other than `0` meant that the associated transactions were anomalous, this feature was converted into binary discrete numerical form: `0` if the associated flag was `0` and `1` if the associated flag was any flag other than `0`.
 
-- **`OrderingCountryFreq` and `BeneficiaryCountryFreq`**: Exploratory data analysis of the training data revealed that anomalous transactions tended to be concentrated among a smaller subset of more frequently appearing countries. In order to capture this signal (especially among the numeric dataset where categorical country features were not used) these features were created. 
+- **`OrderingCountryFreq` and `BeneficiaryCountryFreq`**: Exploratory data analysis of the training data revealed that anomalous transactions tended to be concentrated among a smaller subset of more frequently appearing countries. In order to capture this signal (especially among the numeric dataset where categorical country features were not used) these features were created.
 
 ![beneficiary_countries_barplot](https://user-images.githubusercontent.com/105675055/186516167-b8a9dd1c-3573-48f9-9e2e-de30eb32be01.png)
+
+<br>
 
 - **`Hour` and `SenderHourFreq`**: The `Hour` feature was created by extracting the transaction hour from the `Timestamp` feature of the transactions dataset, and the `SenderHourFreq` feature was created by calculating the frequency of each hour among all transactions.
 
@@ -77,16 +90,23 @@ The following features were engineered in order to maximize the signal captured 
 
 ## Modeling and Results
 
+Models were scored and ranked on their positive class (anomalous transactions, label `1`) F1 scores. The reasoning for this is two-fold: for one, this dataset is extremely imbalanced; anomalous transactions account for only ~0.1% of the training dataset. Given this fact, any metric that takes true negatives into account (accuracy, specificity, negative predictive value, AUC, etc.) would be heavily influenced by a high number of true negative predictions.
 
+Two different datasets were used for modeling: a numeric dataset consisting of all 12 numeric features, and a full dataset consisting of the 12 numeric features plus six additional categorical features. After one hot encoding, the full dataset contained 91 features in total. These two different datasets were used in modeling because it was possible, given the feature engineering conducted, that the numeric dataset could perform just as well as the full dataset, with much reduced dimensionality in an already large set of data. Multiple iterations of resampling and adjusting class weights (set as a dedicated weight column in PySpark) were also experimented with and used for modeling.
+
+Ultimately, the best scoring model was a multilayer perceptron (the PySpark version of a neural network). Though the perceptron was the best scoring model, a simple decision tree was not far behind, only scoring 0.017 lower than the 0.567 F1 score that the best multilayer perceptron iteration achieved.
 
 ![Slide 8](https://user-images.githubusercontent.com/105675055/186525521-8c534dfb-62ca-4cd9-95f8-8ed351ab38e8.jpg)
 
+<br>
+
+After completion of the modeling phase, feature importances of the highest scoring random forest model (trained on the full dataset) were analyzed. The random forest model was used because feature importances cannot be extracted from multilayer perceptrons in PySpark.
+
+The most signficiant feature for the random forest model was the `Flagged` variable. This is unsurprising, as we saw in EDA that if an account associated with a transaction was (non-zero) flagged, then the transaction was guaranteed to be labeled as anomalous. However, less than 20% of the anomalous transactions in the training data were (non-zero) flagged, so reliance on this feature alone would produce poor results (and some of the poor performing models did rely on this feature alone).
+
+The country of the beneficiary entity also proved important, as did many of the frequency features that were engineered.
+
 ![feature_importances_slide](https://user-images.githubusercontent.com/105675055/186527542-f4d0323b-68fc-481e-83b2-8d9c731c8d47.png)
-
-
-
-
-
 
 <br>
 
