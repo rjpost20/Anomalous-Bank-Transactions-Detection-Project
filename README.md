@@ -79,6 +79,7 @@ The following features were engineered in order to maximize the signal captured 
 
 
 
+![Slide 8](https://user-images.githubusercontent.com/105675055/186525521-8c534dfb-62ca-4cd9-95f8-8ed351ab38e8.jpg)
 
 
 
