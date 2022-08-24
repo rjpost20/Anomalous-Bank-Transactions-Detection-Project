@@ -39,6 +39,12 @@ The data itself was produced through a collaboration between the National Instit
 
 ## Exploratory Data Analysis and Feature Engineering
 
+The transactions dataset consisted of 15 `string` features, two `integer` features, two `double`/`float` features, and one `timestamp` feature. The bank accounts dataset consisted of five `string` features and one `integer` feature. Because of the prevalence of `string` features in both datasets, a good deal of preprocessing and feature engineering was required in order to extract as much signal from the data as possible.
+
+As part of the exploratory data analysis phase, differences in feature prevalence between non-anomalous and anomalous transactions were examined. Some trends that emerged among multiple predictor variables were either a smaller grouping of possible values among anomalous transactions as compared to non-anomalous ones (exemplified below), or the opposite: a larger grouping of possible values among anomalous transactions with more rare values not being commonly found among non-anomalous transactions.
+
+![sender_banks_barplot](https://user-images.githubusercontent.com/105675055/186523034-ab994c1e-3f0b-470d-bdcb-5420d262d7a9.png)
+
 The following features were engineered in order to maximize the signal captured in the two datasets:
 
 - **`OrderingCountry` and `BeneficiaryCountry`**: These features were created by extracting the two-letter country code from the `OrderingCountryCityZip` and `BeneficiaryCountryCityZip` columns of the transactions dataframe. These two features were used for the `OrderingCountryFreq` and `BeneficiaryCountryFreq` numerical features below, as well as categorical features themselves in the full dataset via one hot encoding.
@@ -66,6 +72,10 @@ The following features were engineered in order to maximize the signal captured 
 - **`SenderFreq` and `ReceiverFreq`**: These features were created by calculating the frequency of the `OriginalSender` and `FinalReceiver` associated with each individual transaction.
 
 - **`SenderReceiverFreq`**: This feature was created by finding all unique combinations of `SenderBank` and `ReceiverBank` in every transaction of the dataset and calculating the frequency of each.
+
+<br>
+
+## Modeling and Results
 
 
 
