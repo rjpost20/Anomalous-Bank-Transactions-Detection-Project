@@ -33,7 +33,7 @@ Data for this project was obtained from <a href="https://www.drivendata.org/" >d
 
 The data itself was produced through a collaboration between the National Institute of Standards and Technology (NIST) and the National Science Foundation (NSF). Due to the security and confidentiality concerns of such a sensitive matter, the dataset is synthetic, though it is intended to represent global payments data in broad strokes. The transactions dataset contains a binary discrete numerical `Label` column, the target variable for the project, with a `0` representing a non-anomalous transaction and a `1` representing an anomalous transaction.
 
-![Slide 4](https://user-images.githubusercontent.com/105675055/186504784-3f2885ec-aa9b-44a8-ad3a-a9331fe63986.jpeg)
+![Slide 4](https://user-images.githubusercontent.com/105675055/186509494-7978b387-7a4c-4af5-a7e9-1763911bbb26.jpg)
 
 
 
