@@ -81,6 +81,12 @@ The following features were engineered in order to maximize the signal captured 
 
 ![Slide 8](https://user-images.githubusercontent.com/105675055/186525521-8c534dfb-62ca-4cd9-95f8-8ed351ab38e8.jpg)
 
+![feature_importances_slide](https://user-images.githubusercontent.com/105675055/186527542-f4d0323b-68fc-481e-83b2-8d9c731c8d47.png)
+
+
+
+
+
 
 <br>
 
@@ -93,6 +99,7 @@ The following features were engineered in order to maximize the signal captured 
 - **After a certain point, it is difficult to increase recall without substantially reducing precision.** As we outlined in the business understanding section, because this dataset is so imbalanced, even a 1% loss in precision on the testing data means ~700 additional false positives, nearly the entire amount of true positives. This means that increasing recall tends to come at a heavy cost in terms of reduced precision and more false positives, which ultimately seriously degrades the value of the model.<br>
 
 - **The most important features for the model include whether the account is flagged, the country of the beneficiary account, and the frequency of the country of the ordering entity.** Sender currency frequency and beneficiary country frequency round out the top five. It's not surprising that the `Flagged` feature was important, given that we saw it was perfectly correlated with anomalous transactions in the EDA section. The country of the beneficiary account is also a logical feature to contain a good deal of predictive value. Perhaps surprisingly, `SenderReceiverFreq` was a very poor predictor, at least for the random forest model. `SenderFreq` and `SettlementCurrency` also did not seem to contain much predictive value.<br>
+<br>
 
 ***Recommendations and Use Cases:***
 
@@ -101,6 +108,7 @@ The following features were engineered in order to maximize the signal captured 
 - **Improve precision scores before using one of the models with a higher recall but lower F1 score.** As we saw, some models had higher recall than the best perceptron or decision tree models, but came with much lower precision. These models may have potential given additional tuning, but as is they likely carry more downside than upside in terms of false positives and have the potantial to lead to time chasing dead ends.<br>
 
 - **Non-linear models appear to outperform linear ones for this use case.** Many of our initial linear models suffered from overreliance on one or a few features, likely because they were the only ones with a clear linear correlation with the target variable. As we saw in the EDA section though, many of the features do not have a linear relationship with anomalous transactions. Better results will likely be achieved with models which can pick up on these more complex relationships, such as decision tree-based models and neural networks.<br>
+<br>
 
 ***Next Steps and Remaining Questions:***
 
