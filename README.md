@@ -35,5 +35,43 @@ The data itself was produced through a collaboration between the National Instit
 
 ![Slide 4](https://user-images.githubusercontent.com/105675055/186509494-7978b387-7a4c-4af5-a7e9-1763911bbb26.jpg)
 
+<br>
+
+## Exploratory Data Analysis and Feature Engineering
+
+Feature engineering consisted of the following steps:
+
+- **Create `OrderingCountry` and `BeneficiaryCountry` features**: These features were created by extracting the two-letter country code from the `OrderingCountryCityZip` and `BeneficiaryCountryCityZip` columns of the transactions dataframe. These two features were used for the `OrderingCountryFreq` and `BeneficiaryCountryFreq` numerical features below, as well as categorical features themselves in the full dataset via one hot encoding.
+
+- **Create `InstructedAmountUSD` feature**: There were eight unique currencies used among the transactions in the dataset, and the `InstructedAmount` and `SettlementAmount` features in the original dataset were in the scale of the currencies used in the individual transactions. In order to get all transactions on a consistent scale, this new feature was engineered by converting each transaction currency amount to its USD equivalent on 2022/01/12, the median transaction date in the 23-day window of the transactions dataset.
+
+![instructed_amount_usd_hist](https://user-images.githubusercontent.com/105675055/186510886-291ce82d-dbf2-4a04-97f5-35ec6e5ffeff.png)
+
+- **Create `IntermediaryTransactions` feature**: While each row/observation in the dataset represented a unique individual transaction, some individual transactions represented one part of a end-to-end transaction, which could be identified by their UETR codes. This feature was created by grouping and counting UETR code occurrences, and subtracting 1 to obtain the number of intermediary transactions for each end-to-end transaction.
+
+- **Create `OriginalSender` and `FinalReceiver` features**: The `Sender` and `Receiver` bank features in the original dataset represented the sender and receiver banks of the individual transactions, but for end-to-end transactions where intermediary banks were used, the `Sender` and `Receiver` bank may not have represented the original sender bank and final receiver bank in the end-to-end transaction (which was the correct way to associate them according to the data providers). This feature was created to address this discrepancy.
+
+![sender_bank_type_barplot](https://user-images.githubusercontent.com/105675055/186516557-482cf398-ae3d-41f7-a1c8-12bd21b40040.png)
+
+- **Create `Flagged` feature by joining `Flags` column of `banks_df`**: The main feature of value in the bank accounts dataframe was the `Flags` feature, which contained one of 11 unique potential flags associated with each account in the transactions dataframe (save for a very small subset of accounts with no associated flag). The vast majority of accounts had a flag of `0`, which signified "No flags", while the other flags may have represented an account being closed, a name mismatch, or an account under monitoring, to name a few. This feature of the bank accounts dataframe was joined with the main transactions dataset using a SQL join operation in PySpark.
+
+- **Create `OrderingCountryFreq` and `BeneficiaryCountryFreq` features**: Exploratory data analysis of the training data revealed that anomalous transactions tended to be concentrated among a smaller subset of more frequently appearing countries. In order to capture this signal (especially among the numeric dataset where categorical country features were not used) these features were created. 
+
+![beneficiary_countries_barplot](https://user-images.githubusercontent.com/105675055/186516167-b8a9dd1c-3573-48f9-9e2e-de30eb32be01.png)
+
+- **Create `Hour` and `SenderHourFreq` features**: The `Hour` feature was created by extracting the transaction hour from the `Timestamp` feature of the transactions dataset, and the `SenderHourFreq` feature was created by calculating the frequency of each hour among all transactions.
+
+- **Create `SenderCurrencyFreq` and `SenderCurrencyAmtAvg` features**: The `SenderCurrencyFreq` feature was created by matching the `OriginalSender` bank with the currency used in each transaction, while the `SenderCurrencyAmtAvg` feature was created by matching the `OriginalSender` feature with the `InstructedAmountUSD` feature. Sender banks were used rather than receiver banks as EDA revealed greater differences in sender bank between non-anomalous and anomalous transactions than receiver bank.
+
+- **Create `SenderFreq` and `ReceiverFreq` features**: These features were created by calculating the frequency of the `OriginalSender` and `FinalReceiver` associated with each individual transaction.
+
+- **Create `SenderReceiverFreq` feature**: This feature was created by calcu
+
+
+
+
+
+
+
 
 
