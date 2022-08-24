@@ -82,7 +82,30 @@ The following features were engineered in order to maximize the signal captured 
 ![Slide 8](https://user-images.githubusercontent.com/105675055/186525521-8c534dfb-62ca-4cd9-95f8-8ed351ab38e8.jpg)
 
 
+<br>
 
+## Conclusions, Recommendations, and Next Steps
 
+***Conclusions:***
 
+- **Final model strengths and weaknesses:** Our highest scoring model, model 7.4 - multilayer perceptron (artifical neural network), achieved a test F1 score of 0.567, beating the previous best model, a decision tree, by 0.017. The model correctly classified approximately 41% of the anomalous transactions (recall) and had a positive predictive value (precision) of over 93%, meaning over 93% of its predictions of anomalous transactions are in fact anomalous. While correctly identifying less than half of the anomalous transactions may seem mediocre, given that the model essentially needs to find needles in a haystack (761 anomalous transactions out of over 705k) with near surgical precision, it is no small feat.<br>
 
+- **After a certain point, it is difficult to increase recall without substantially reducing precision.** As we outlined in the business understanding section, because this dataset is so imbalanced, even a 1% loss in precision on the testing data means ~700 additional false positives, nearly the entire amount of true positives. This means that increasing recall tends to come at a heavy cost in terms of reduced precision and more false positives, which ultimately seriously degrades the value of the model.<br>
+
+- **The most important features for the model include whether the account is flagged, the country of the beneficiary account, and the frequency of the country of the ordering entity.** Sender currency frequency and beneficiary country frequency round out the top five. It's not surprising that the `Flagged` feature was important, given that we saw it was perfectly correlated with anomalous transactions in the EDA section. The country of the beneficiary account is also a logical feature to contain a good deal of predictive value. Perhaps surprisingly, `SenderReceiverFreq` was a very poor predictor, at least for the random forest model. `SenderFreq` and `SettlementCurrency` also did not seem to contain much predictive value.<br>
+
+***Recommendations and Use Cases:***
+
+- **Use the models as a guide on where to focus investigatory resources.** The limited time and resources of investigators should be wisely spent so as to limit time chasing false leads or annoying law-abiding customers. A model which can identify truly anomalous/potentially illicit transactions has a lot of value in terms of providing a signpost for where stakeholders should focus their resources for maximum benefit.<br>
+
+- **Improve precision scores before using one of the models with a higher recall but lower F1 score.** As we saw, some models had higher recall than the best perceptron or decision tree models, but came with much lower precision. These models may have potential given additional tuning, but as is they likely carry more downside than upside in terms of false positives and have the potantial to lead to time chasing dead ends.<br>
+
+- **Non-linear models appear to outperform linear ones for this use case.** Many of our initial linear models suffered from overreliance on one or a few features, likely because they were the only ones with a clear linear correlation with the target variable. As we saw in the EDA section though, many of the features do not have a linear relationship with anomalous transactions. Better results will likely be achieved with models which can pick up on these more complex relationships, such as decision tree-based models and neural networks.<br>
+
+***Next Steps and Remaining Questions:***
+
+- **Obtain more positive class observations.** While synthetic adjustment to the dataset can be made to even out the class imbalance, such as over or undersampling, SMOTE, or adjusting class weights, the best option is almost always to obtain more observations of the minority class. The models could likely perform better if they have more data of the positive class to go off of.<br>
+
+- **Experiment with synthetic minority oversampling technique (SMOTE).** SMOTE was not used as part of this project because it does not appear to be supported by PySpark at the time of writing. While we did oversample the minority class with some models, SMOTE may have done a better job preventing overfitting, as simple oversampling can tend to cause models to overfit to noise that happens to be present in the minority class observations.<br>
+
+- **Why did the model fail to improve substantially after the inclusion of six additional categorical variables?** Despite the feature importances of the random forest model telling us that multiple one hot encoded features had high importance, the model barely budged in F1 score between the best numeric dataset model and the best full dataset model. Did the numeric features we engineered capture all or most of the signal in the categorical features? Or maybe some of the categorical features were indeed valuable, but others introduced noise into the model that drowned out the signal of the valuable predictors. Investigating this further could yield valuable insights.
